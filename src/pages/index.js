@@ -14,6 +14,7 @@ import imgThermo from '../images/thermo.svg';
 import imgWind from '../images/wind.svg';
 import imgBino from '../images/binoculars.svg';
 import imgPressure from '../images/pressure.svg';
+import '../images/search.svg';
 
 const SUPER_SAFE_API_KEY = "af505786e986356b428ac52fb8b32832";
 
@@ -29,6 +30,8 @@ const windSpeed = document.getElementById("windSpeedText");
 const pressure = document.getElementById("pressureText");
 const visibility = document.getElementById("visibilityText");
 
+const searchButton = document.getElementById("searchButton");
+const userInput = document.getElementById("searchBarInput");
 
 let cityName = "wałbrzych";
 let units = "metric";
@@ -37,11 +40,12 @@ let units = "metric";
 getWeatherData();
 getUnits();
 
-// document.addEventListener("DOMContentLoaded", function() {
-//     checkLocalStorage();
-//   });
-
-
+searchButton.addEventListener("click", findTown);
+userInput.addEventListener("keypress", function(e){
+    if (e.key === "Enter"){
+        findTown();
+    }
+});
 
 
 async function getApiWeatherData(){
@@ -50,15 +54,13 @@ async function getApiWeatherData(){
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityName}&APPID=${SUPER_SAFE_API_KEY}&units=${units}&lang=pl`);
         const data = await response.json();
         weatherData = data;
-        console.log(data);
+        return weatherData;
     }
     catch(e){
         console.log("Something happened:\n" + e);
         weatherData = null;
     }
-    finally{
-        return weatherData;
-    }
+
 }
 
 async function getApiForecastData(){
@@ -67,24 +69,27 @@ async function getApiForecastData(){
         const response= await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${SUPER_SAFE_API_KEY}`);
         const data = await response.json();
         forecastData = data;
-        console.log(data);
+        return forecastData;
     }
     catch(e){
         console.log("Something happened:\n" + e);
         forecastData = null;
     }
-    finally{
-        return forecastData;
-    }
 }
 
 async function getWeatherData(){
-    const weatherData = await getApiWeatherData();
-    const forecastData = await getApiForecastData();
-
-    if (weatherData != null){
-        todayWeather(weatherData, forecastData.list[0].pop);
+    try{
+        const weatherData = await getApiWeatherData();
+        const forecastData = await getApiForecastData();
+        if (weatherData != null){
+            todayWeather(weatherData, forecastData.list[0].pop);
+        }
     }
+    catch(e){
+        userInput.placeholder = "Enter valid town name.";
+        userInput.value = "";
+    }
+
 }
 
 
@@ -158,4 +163,18 @@ function getIcon(id){
         case "50d":
             return imgMist;
     }
+}
+
+function findTown(){
+
+    if (userInput.value === "" || userInput.value.match(/^ *$/) !== null){
+        userInput.value = "";
+        userInput.placeholder = "Value can't be empty.";
+        return;
+    }
+
+    cityName = userInput.value;
+    userInput.value = "";
+    getWeatherData();
+
 }
