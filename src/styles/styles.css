@@ -23,7 +23,7 @@ body{
     align-items: center;
     text-align: center;
     min-width: 40%;
-    margin-top: 3%;
+    margin-top: 2%;
     gap: 10%;
 }
 
@@ -36,15 +36,16 @@ body{
 }
 
 #secondaryWeatherLeft > *{
-    justify-content: space-between;
+    text-align: left;
 }
 
 #secondaryWeatherRight > *{
-    justify-content: space-between;
+    text-align: right;
 }
 
 .secondaryWeather > *{
     display: flex;
+    justify-content: space-between;
     flex-direction: row;
     align-items: center;
     width: 100%;
@@ -54,7 +55,6 @@ body{
 .textContainer{
     display: flex;
     flex-direction: column;
-    text-align: center;
 }
 
 #mainWeather{
