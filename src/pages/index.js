@@ -32,6 +32,7 @@ const visibility = document.getElementById("visibilityText");
 
 const searchButton = document.getElementById("searchButton");
 const userInput = document.getElementById("searchBarInput");
+const fiveDayWeather = document.getElementById("fiveDayWeather");
 
 let cityName = "wałbrzych";
 let units = "metric";
@@ -66,9 +67,10 @@ async function getApiWeatherData(){
 async function getApiForecastData(){
     let forecastData;
     try{
-        const response= await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${SUPER_SAFE_API_KEY}`);
+        const response= await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${SUPER_SAFE_API_KEY}&units=${units}&lang=pl`);
         const data = await response.json();
         forecastData = data;
+        console.log(data);
         return forecastData;
     }
     catch(e){
@@ -83,6 +85,9 @@ async function getWeatherData(){
         const forecastData = await getApiForecastData();
         if (weatherData != null){
             todayWeather(weatherData, forecastData.list[0].pop);
+        }
+        if (forecastData != null){
+            forecastWeather(forecastData);
         }
     }
     catch(e){
@@ -105,6 +110,72 @@ function todayWeather(data, pop){
     visibility.textContent = getVisibility(data.visibility) + getUnits().distanceUnit;
     windSpeed.textContent = parseInt(data.wind.speed) + getUnits().speedUnit;
     pressure.textContent = data.main.pressure + " hPa";
+}
+
+async function forecastWeather(data){
+    try{
+        const timestampsDay = await getDateOfNextDays();
+        const timestampsNight = await(getDateOfNextNights());
+        const filteredForecastsDay = data.list.filter(forecast => {
+            const forecastTimestamp = forecast.dt;
+            return timestampsDay.includes(forecastTimestamp);
+        });
+        const filteredForecastsNight = data.list.filter(forecast => {
+            const forecastTimestamp = forecast.dt;
+            return timestampsNight.includes(forecastTimestamp);
+        });
+        setDataToNextFiveDays(filteredForecastsDay, filteredForecastsNight);
+    }
+    catch(e){
+        console.log("Something happened: \n" + e);
+    }
+}
+
+function getUnixTimestampTomorrowDay(i){
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getUTCDate() + i);
+    tomorrow.setUTCHours(12,0,0,0);
+    return Math.floor(tomorrow.getTime() / 1000);
+}
+
+function getUnixTimestampTomorrowNight(i){
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getUTCDate() + i);
+    tomorrow.setUTCHours(24,0,0,0);
+    return Math.floor(tomorrow.getTime() / 1000);
+}
+
+async function getDateOfNextDays() {
+    const timestamps = [];
+    for (let i = 0; i < 6; i++) {
+      const timestamp = getUnixTimestampTomorrowDay(i);
+      timestamps.push(timestamp);
+    }
+    return timestamps;
+}
+
+async function getDateOfNextNights() {
+    const timestamps = [];
+    for (let i = 0; i < 6; i++) {
+      const timestamp = getUnixTimestampTomorrowNight(i);
+      timestamps.push(timestamp);
+    }
+    return timestamps;
+}
+
+function setDataToNextFiveDays(day, night){
+    fiveDayWeather.querySelectorAll(".dayContainer").forEach((element,index)  =>{
+        const temperatureContainer = element.firstElementChild;
+        temperatureContainer.firstElementChild.textContent = parseInt(day[index].main.temp) + getUnits().tempUnit;
+        temperatureContainer.lastElementChild.textContent = parseInt(night[index].main.temp) + getUnits().tempUnit;
+        
+        const unixInMiliseconds = day[index].dt * 1000;
+        const date = new Date(unixInMiliseconds);
+        const dayOfWeek = date.getDay();
+        const dayNames = ["Niedziela", "Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota"];
+
+        element.lastElementChild.textContent = dayNames[dayOfWeek];
+    })
 }
 
 function getUnits(){
@@ -131,16 +202,12 @@ function getVisibility(visibility){
         const secondDigit = visibility.toString().charAt(1);
         returnValue = firstDigit + "." + secondDigit + " K";
         return returnValue;
-        // return visibility.toString().substring(0,2);
     }
     if (visibility < 1000){
         return visibility + " ";
     }
 }
 
-function forecastWeather(data){
-
-}
 
 function getIcon(id){
     switch (id){

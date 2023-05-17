@@ -102,3 +102,45 @@ body{
     width: 6rem;
     height: 6rem;
 }
+
+#fiveDayWeatherContainer{
+    margin-top: auto;
+    width: 70%;
+    height: 15rem;
+    color: white;
+}
+
+#fiveDayWeather{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.dayContainer{
+    display: flex;
+    flex-direction: column;
+    gap:.5rem;
+    align-items: center;
+}
+
+.temperatureContainer{
+    text-align: left;
+}
+
+.iconForecast{
+    width: 4rem;
+    height: 4rem;
+    filter:invert(100%)
+}
+
+.dayTemperature{
+    font-size: 3rem;
+}
+
+.nightTemperature{
+    font-size: 1.5rem;
+}
+
+.dayText{
+    font-size: 1.5rem;
+}
